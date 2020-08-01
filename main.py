@@ -1,6 +1,6 @@
 import pygame, sys, random
 
-size = (1000,650)
+size = (1000,650) # size[0]: Row; size[1]: Column
 bg_color = (255,255,255)
 tick = 10
 
@@ -65,6 +65,34 @@ class Enermy_Bullet(pygame.sprite.Sprite):
     def move(self):
         self.rect = self.rect.move(self.t)
 
+class First(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('./pic/First/plane.png')
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = (500,100)
+        self.t = [0,0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.blood = 1000
+        self.direction_CD = 0
+    
+    def move(self):
+        if self.direction_CD <= 0:
+            self.t = [(random.randint(-1,1))*5,(random.randint(-1,1))*5]
+            self.direction_CD = 100
+        if self.rect.top <= 0 or self.rect.bottom >= 250:
+            if self.rect.top <= 0 and self.t[1] < 0:
+                self.t[1]*=-1
+            elif self.rect.bottom >= 250 and self.t[1] > 0:
+                self.t[1]*=-1
+        if self.rect.left <= 0 or self.rect.right >= size[0]:
+            if self.rect.left <= 0 and self.t[0] < 0:
+                self.t[0]*=-1
+            elif self.rect.right >= size[0] and self.t[1] > 0:
+                self.t[0]*=-1
+        self.rect = self.rect.move(self.t)
+        self.direction_CD -= 1
+
 class Enermy(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -119,6 +147,10 @@ enermy_num = 0
 running = True
 font = pygame.font.SysFont('arial', 40)
 player = Player()
+enermy_able = True
+# Boss First
+first = First()
+first_able = False
 
 # Game lists
 enermy_bullets = pygame.sprite.Group() # Enermy Bullets
@@ -181,10 +213,15 @@ def animate():
         death()
         running = False
     screen.blit(player.image, player.rect)
+    # Boss First
+    if first_able == True:
+        first.move()
+        screen.blit(first.image, first.rect)
     # Other Generation
-    for i in range(enermy_num, MAXENERMY):
-        enermies.add(Enermy())
-        enermy_num += 1
+    if enermy_able == True:
+        for i in range(enermy_num, MAXENERMY):
+            enermies.add(Enermy())
+            enermy_num += 1
     for i in range(player_bullet_num, MAXPLAYERBULLET):
         if player.shooting_CD <= 0:
             player_bullets.add(Player_Bullet(player.get_pos()))
@@ -202,6 +239,9 @@ def animate():
 # Main loop
 while running:
     animate()
+    if score >= 1:
+        first_able = True
+        enermy_able = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
