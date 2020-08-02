@@ -88,7 +88,7 @@ class First(pygame.sprite.Sprite):
         if self.rect.left <= 0 or self.rect.right >= size[0]:
             if self.rect.left <= 0 and self.t[0] < 0:
                 self.t[0]*=-1
-            elif self.rect.right >= size[0] and self.t[1] > 0:
+            elif self.rect.right >= size[0] and self.t[0] > 0:
                 self.t[0]*=-1
         self.rect = self.rect.move(self.t)
         self.direction_CD -= 1
