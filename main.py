@@ -10,7 +10,7 @@ MAXSPEED = 3
 MAXPLAYERBULLET = 40
 PLAYERBULLETDELAY = 400
 MAXENERMYBULLET = 7
-ENERMYBULLETDELAY = 300
+ENERMYBULLETDELAY = 400000000#400
 
 # Initialization
 pygame.init()
@@ -18,6 +18,12 @@ screen = pygame.display.set_mode(size)
 screen.fill(bg_color)
 
 # Classes
+class Boss:
+    def __init__(self):
+        self.first_able = False
+        self.first_death = False
+boss = Boss()
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -93,6 +99,15 @@ class First(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.t)
         self.direction_CD -= 1
 
+    def animate(self):
+        first.move()
+        screen.blit(first.image, first.rect)
+        if pygame.sprite.spritecollide(self, player_bullets, True, pygame.sprite.collide_mask):
+            self.blood -= 100
+    
+    def __del__(self):
+        print('First Die')
+
 class Enermy(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -150,7 +165,6 @@ player = Player()
 enermy_able = True
 # Boss First
 first = First()
-first_able = False
 
 # Game lists
 enermy_bullets = pygame.sprite.Group() # Enermy Bullets
@@ -175,7 +189,7 @@ def death():
     pygame.display.flip()
 
 def animate():
-    global enermy_num, player_bullet_num, score, miss, font, running
+    global enermy_num, player_bullet_num, score, miss, font, running, boss, first, enermy_able
     screen.fill(bg_color)
     # Enermy
     for enermy in enermies:
@@ -214,9 +228,12 @@ def animate():
         running = False
     screen.blit(player.image, player.rect)
     # Boss First
-    if first_able == True:
-        first.move()
-        screen.blit(first.image, first.rect)
+    if boss.first_able == True and boss.first_death == False:
+        first.animate()
+        if first.blood <= 0:
+            boss.first_able = False
+            boss.first_death = True
+            del first
     # Other Generation
     if enermy_able == True:
         for i in range(enermy_num, MAXENERMY):
@@ -236,12 +253,19 @@ def animate():
     pygame.display.flip()
     pygame.time.delay(tick)
 
+def present():
+    global enermy_able
+    if score >= 3 and boss.first_death == False:
+        boss.first_able = True
+        enermy_able = False
+    if boss.first_death == True:
+        boss.first_able = False
+        enermy_able = True
+
 # Main loop
 while running:
     animate()
-    if score >= 1:
-        first_able = True
-        enermy_able = False
+    present()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
