@@ -18,12 +18,6 @@ screen = pygame.display.set_mode(size)
 screen.fill(bg_color)
 
 # Classes
-class Boss:
-    def __init__(self):
-        self.first_able = False
-        self.first_death = False
-boss = Boss()
-
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -56,6 +50,8 @@ class Player(pygame.sprite.Sprite):
 
     def death(self):
         if pygame.sprite.spritecollide(self, enermies, False, pygame.sprite.collide_mask):
+            return True
+        if pygame.sprite.spritecollide(self, boss.boss, False, pygame.sprite.collide_mask) and boss.first_able == True and boss.first_death == False:
             return True
         return False
 
@@ -100,8 +96,8 @@ class First(pygame.sprite.Sprite):
         self.direction_CD -= 1
 
     def animate(self):
-        first.move()
-        screen.blit(first.image, first.rect)
+        self.move()
+        screen.blit(self.image, self.rect)
         if pygame.sprite.spritecollide(self, player_bullets, True, pygame.sprite.collide_mask):
             self.blood -= 100
     
@@ -156,6 +152,16 @@ class Player_Bullet(pygame.sprite.Sprite):
             return True
         return False
 
+class Boss:
+    def __init__(self):
+        self.first_able = False
+        self.first_death = False
+        self.first = First()
+        self.boss = pygame.sprite.Group()
+        self.boss.add(self.first)
+
+boss = Boss()
+
 # Game variable number
 player_bullet_num = 0
 enermy_num = 0
@@ -163,8 +169,6 @@ running = True
 font = pygame.font.SysFont('arial', 40)
 player = Player()
 enermy_able = True
-# Boss First
-first = First()
 
 # Game lists
 enermy_bullets = pygame.sprite.Group() # Enermy Bullets
@@ -189,7 +193,7 @@ def death():
     pygame.display.flip()
 
 def animate():
-    global enermy_num, player_bullet_num, score, miss, font, running, boss, first, enermy_able
+    global enermy_num, player_bullet_num, score, miss, font, running, boss, enermy_able
     screen.fill(bg_color)
     # Enermy
     for enermy in enermies:
@@ -229,11 +233,11 @@ def animate():
     screen.blit(player.image, player.rect)
     # Boss First
     if boss.first_able == True and boss.first_death == False:
-        first.animate()
-        if first.blood <= 0:
+        boss.first.animate()
+        if boss.first.blood <= 0:
             boss.first_able = False
             boss.first_death = True
-            del first
+            del boss.first
     # Other Generation
     if enermy_able == True:
         for i in range(enermy_num, MAXENERMY):
